@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [token, setToken] = useState(null);
   const [username, SetUsername] = useState('')
 
   const [registerData, setRegisterData] = useState({ username: '', password: '' });
@@ -38,7 +37,7 @@ function App() {
             }
           }
           else {
-              setIsAuthenticated(false)
+            setIsAuthenticated(false)
           }
         }
 
@@ -74,8 +73,8 @@ function App() {
         body: JSON.stringify(loginData),
         credentials: 'include'
       });
-      const data = await res.json();
       if (res.ok) {
+        const data = await res.json();
         SetUsername(data.username)
         setIsAuthenticated(true);
       }
@@ -84,9 +83,18 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setToken(null);
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/logout', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      if (res.ok) {
+        setIsAuthenticated(false);
+      }
+    } catch (err) {
+
+    }
   };
 
   return (
