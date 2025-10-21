@@ -11,15 +11,37 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch('http://localhost:3000/', {
+        let res = await fetch('http://localhost:3000/', {
           method: 'GET',
           credentials: 'include'
         });
-        const data = await res.json();
         if (res.ok) {
+          const data = await res.json();
           setIsAuthenticated(true);
           SetUsername(data.username)
         }
+        else if (res.status === 401) {
+          const refresh = await ('http://localhost:3000/refresh', {
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          if (refresh.ok) {
+            res = await fetch('http://localhost:3000/', {
+              method: 'GET',
+              credentials: 'include'
+            });
+            if (res.ok) {
+              const data = await res.json();
+              setIsAuthenticated(true);
+              SetUsername(data.username)
+            }
+          }
+          else {
+              setIsAuthenticated(false);
+          }
+        }
+
       } catch (err) {
         console.error('No autenticado:', err);
       }
