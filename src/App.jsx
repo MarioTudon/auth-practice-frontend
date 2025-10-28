@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, SetUsername] = useState('')
-
+  const [username, SetUsername] = useState('');
   const [registerData, setRegisterData] = useState({ username: '', password: '' });
   const [loginData, setLoginData] = useState({ username: '', password: '' });
+  const [registerError, setRegisterError] = useState('');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -15,32 +15,29 @@ function App() {
           credentials: 'include'
         });
         if (res.ok) {
-          const data = await res.json()
-          setIsAuthenticated(true)
-          SetUsername(data.username)
-        }
-        else if (res.status === 401) {
+          const data = await res.json();
+          setIsAuthenticated(true);
+          SetUsername(data.username);
+        } else if (res.status === 401) {
           const refresh = await fetch('http://localhost:3000/refresh', {
             method: 'GET',
             credentials: 'include'
-          })
+          });
 
           if (refresh.ok) {
             res = await fetch('http://localhost:3000/', {
               method: 'GET',
               credentials: 'include'
-            })
+            });
             if (res.ok) {
               const data = await res.json();
               setIsAuthenticated(true);
-              SetUsername(data.username)
+              SetUsername(data.username);
             }
-          }
-          else {
-            setIsAuthenticated(false)
+          } else {
+            setIsAuthenticated(false);
           }
         }
-
       } catch (err) {
         console.error('No autenticado:', err);
       }
@@ -51,6 +48,7 @@ function App() {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    setRegisterError(''); // Limpiar errores anteriores
     try {
       const res = await fetch('http://localhost:3000/register', {
         method: 'POST',
@@ -58,9 +56,16 @@ function App() {
         body: JSON.stringify(registerData),
       });
       const data = await res.json();
-      console.log('Registro:', data);
+
+      if (data.error && Array.isArray(data.details) && data.details.length > 0) {
+        const { field, message } = data.details[0];
+        setRegisterError(`${field} ${message}`);
+      } else {
+        console.log('Registro exitoso:', data);
+      }
     } catch (err) {
       console.error('Error al registrar:', err);
+      setRegisterError('Error de conexión con el servidor.');
     }
   };
 
@@ -75,7 +80,7 @@ function App() {
       });
       if (res.ok) {
         const data = await res.json();
-        SetUsername(data.username)
+        SetUsername(data.username);
         setIsAuthenticated(true);
       }
     } catch (err) {
@@ -88,12 +93,12 @@ function App() {
       const res = await fetch('http://localhost:3000/logout', {
         method: 'GET',
         credentials: 'include'
-      })
+      });
       if (res.ok) {
         setIsAuthenticated(false);
       }
     } catch (err) {
-
+      console.error('Error al cerrar sesión:', err);
     }
   };
 
@@ -120,6 +125,7 @@ function App() {
               required
             />
             <button type="submit">Registrar</button>
+            {registerError && <p style={{ color: 'red' }}>{registerError}</p>}
           </form>
 
           <form onSubmit={handleLogin} className="form">
@@ -153,3 +159,4 @@ function App() {
 }
 
 export default App;
+``
